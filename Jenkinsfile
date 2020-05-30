@@ -1,50 +1,61 @@
-def boolean whateverFunction() {
-    sh 'ls /'
-    return true
-}
-
-def result
-
 pipeline {
   agent any
+
+  triggers {
+    pollSCM('*/5 * * * 1-5')
+  }
+  
   stages {
     
-    stage('clone') {
+    stage('Code Pull') {
       steps {
-        echo "Cloning the repo"
+        echo "Checking out the code"
         checkout scm   
-        sh "pwd"
       }
     }
     
-    stage('prep') {
+    stage('Build Environment') {
       steps {
-        script {
-           result = whateverFunction()
-        }
-        echo "Printing the result ${result}"  
-        echo "Executing the prep stage"
+        echo "Building the Virtual Environment"
         sh 'pip3 install -r requirements.txt'
       }
     }
     
-    stage('build') {
+    stage('Execute Application') {
       steps { 
-        echo "Starting the app"
+        echo "Executing the application - Build Tag - ${BUILD_TAG}"
         sh "./app.py &"
-      
       }
     }
     
-    stage('test') {
+    stage('Execute UnitTest') {
       steps {
         sh 'python test.py'
       }  
-      post {
-        always {
-          junit 'test-reports/*.xml'
-        }
-      }    
+    }
+
+    stage('Execute Deploy') {
+      steps {
+        echo "Deploying the package"
+      }
+    }
+  }
+  post {
+    always {
+        junit 'test-reports/*.xml'
+    }
+    success {
+        echo 'The build is validated successfully'
+    }
+    failure {
+        echo 'Tests failed for the current package'
+    }
+    unstable {
+        echo 'This will run only if the run was marked as unstable'
+    }
+    changed {
+        echo 'This will run only if the state of the Pipeline has changed'
+        echo 'For example, if the Pipeline was previously failing but is now successful'
     }
   }
 }
