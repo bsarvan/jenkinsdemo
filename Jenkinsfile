@@ -43,7 +43,9 @@ pipeline {
   }
   post {
     always {
+      steps {
         executeIn 'env' 'junit \'test-reports/*.xml\''
+      }
     }
     success {
         echo 'The build is validated successfully'
