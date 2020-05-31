@@ -17,20 +17,21 @@ pipeline {
     stage('Build Environment') {
       steps {
         echo "Building the Virtual Environment"
-        sh 'pip3 install -r requirements.txt'
+        createVirtualEnv 'env'
+        executeIn 'env', 'pip3 install -r requirements.txt'
       }
     }
     
     stage('Execute Application') {
       steps { 
         echo "Executing the application - Build Tag - ${BUILD_TAG}"
-        sh "./app.py &"
+        executeIn 'env', './app.py &'
       }
     }
     
     stage('Execute UnitTest') {
       steps {
-        sh 'python test.py'
+        executeIn 'env', 'python test.py'
       }  
     }
 
@@ -42,7 +43,7 @@ pipeline {
   }
   post {
     always {
-        junit 'test-reports/*.xml'
+        executeIn 'env' 'junit \'test-reports/*.xml\''
     }
     success {
         echo 'The build is validated successfully'
@@ -73,25 +74,6 @@ def createVirtualEnv(String name) {
  
 def executeIn(String environment, String script) {
     sh "source ${environment}/bin/activate && " + script
-}
- 
-// alternative workaround
-env.VENV_PATH = "${JENKINS_HOME}/.virtualenv/${JOB_NAME}/venv"
-
-def virtualEnv(String rebuild){
-    withEnv(["PATH+VEX=~/.local/bin"]){
-        if(rebuild == "true") {
-            sh "rm -rf ${env.VENV_PATH}"
-            sh "echo 'rebuild is true'"
-        }
-        sh returnStatus: true, script: "virtualenv ${env.VENV_PATH}"
-    }
-}
-
-def runCmd(String pyCmd){
-    withEnv(["PATH+VEX=~/.local/bin"]){
-        sh returnStatus: true, script: "vex --path=${env.VENV_PATH} ${pyCmd}"
-    }
 }
 
 
