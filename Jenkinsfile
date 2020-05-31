@@ -4,7 +4,7 @@ pipeline {
   triggers {
     pollSCM('*/5 * * * 1-5')
   }
-  
+
   stages {
     
     stage('Code Pull') {
@@ -46,6 +46,7 @@ pipeline {
     }
     success {
         echo 'The build is validated successfully'
+        mail to: bharat.sarvan@247.ai, subject: 'The Pipeline passed !'
     }
     failure {
         echo 'Tests failed for the current package'
