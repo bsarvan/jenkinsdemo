@@ -46,7 +46,12 @@ pipeline {
     }
     success {
         echo 'The build is validated successfully'
-        mail to: bharat.sarvan@247.ai, subject: 'The Pipeline passed !'
+        emailext (
+          subject: "Job '${env.JOB_NAME} ${env.BUILD_NUMBER}'",
+          body: """<p>Check console output at <a href="${env.BUILD_URL}">${env.JOB_NAME}</a></p>""",
+          to: "bharat.sarvan@247.ai",
+          from: "jenkins@247.ai"
+        )
     }
     failure {
         echo 'Tests failed for the current package'
