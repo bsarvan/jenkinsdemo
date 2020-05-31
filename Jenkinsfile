@@ -76,7 +76,7 @@ def createVirtualEnv(String name) {
 }
 
 def deleteVirtualEnv(String name) {
-  sh "deactivate"
+  sh ". ${name}/bin/activate && deactivate"
   sh "rm -rf ${name}"
 }
 
