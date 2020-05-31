@@ -16,7 +16,7 @@ pipeline {
     
     stage('Build Environment') {
       steps {
-        echo "Building the Virtual Environment"
+        echo "Creating the Virtual Environment"
         createVirtualEnv 'env'
         executeIn 'env', 'pip3 install -r requirements.txt'
       }
@@ -31,7 +31,10 @@ pipeline {
     
     stage('Execute UnitTest') {
       steps {
+        echo "Executing the Unit Test"
         executeIn 'env', 'python test.py'
+        echo "Deactivating and Deleting the Virtual Environment"
+        deleteVirtualEnv 'env'
       }  
     }
 
@@ -71,7 +74,12 @@ pipeline {
 def createVirtualEnv(String name) {
     sh "virtualenv ${name}"
 }
- 
+
+def deleteVirtualEnv(String name) {
+  sh "deactivate"
+  sh "rm -rf ${name}"
+}
+
 def executeIn(String environment, String script) {
     sh ". ${environment}/bin/activate && " + script
 }
